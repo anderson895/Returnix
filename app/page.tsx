@@ -9,7 +9,7 @@ export default function HomePage() {
           <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center">
             <Search className="w-5 h-5 text-white" />
           </div>
-          <span className="text-white font-bold text-lg">LostFound</span>
+          <span className="text-white font-bold text-lg">Returnix</span>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-slate-300 hover:text-white px-4 py-2 rounded-lg transition-colors text-sm">Sign In</Link>
@@ -22,7 +22,7 @@ export default function HomePage() {
           Web-Based Reporting and Recovery System
         </div>
         <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
-          Lost Something?<br />
+           A Web-Based System for Reporting and Recovering Lost Items<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">We'll Help You Find It.</span>
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-10">A secure platform connecting users with security personnel for lost item recovery with claim verification and real-time notifications.</p>
@@ -32,7 +32,7 @@ export default function HomePage() {
         </div>
       </section>
       <footer className="border-t border-white/10 text-center py-6 text-slate-500 text-sm">
-        © {new Date().getFullYear()} LostFound System. Built with Next.js 15, Supabase and Cloudinary.
+        © {new Date().getFullYear()} Returnix System. Built with Next.js 15, Supabase and Cloudinary.
       </footer>
     </div>
   )

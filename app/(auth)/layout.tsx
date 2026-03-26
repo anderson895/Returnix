@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
             <Search className="w-4 h-4 text-white" />
           </div>
-          <span className="text-white font-bold">LostFound</span>
+          <span className="text-white font-bold">Returnix</span>
         </Link>
       </nav>
       <div className="flex-1 flex items-center justify-center px-4 py-12">

@@ -65,7 +65,7 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Search className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-gray-900">LostFound</span>
+          <span className="font-bold text-gray-900">Returnix</span>
         </div>
       </div>
 
