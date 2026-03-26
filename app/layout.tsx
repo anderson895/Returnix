@@ -7,7 +7,7 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 
 export const metadata: Metadata = {
   title: {
-    default: 'Lost & Found System',
+    default: 'Returnix',
     template: '%s | Lost & Found System',
   },
   description: 'Web-based system for reporting and recovering lost items',
