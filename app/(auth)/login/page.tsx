@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -24,16 +22,14 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    // Get role for redirect
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
       const role = profile?.role
-      if (role === 'admin') router.push('/admin')
-      else if (role === 'security') router.push('/security')
-      else router.push('/dashboard')
+      if (role === 'admin') window.location.href = '/admin'
+      else if (role === 'security') window.location.href = '/security'
+      else window.location.href = '/dashboard'
     }
-    router.refresh()
   }
 
   return (

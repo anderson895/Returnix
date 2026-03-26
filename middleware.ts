@@ -1,5 +1,6 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -13,9 +14,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -25,68 +24,58 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // 🔍 DEBUG — tanggalin pagkatapos ma-fix
-  console.log('--- MIDDLEWARE ---')
-  console.log('pathname:', pathname)
-  console.log('user:', user?.id ?? 'NULL')
-  console.log('error:', error?.message ?? 'none')
-  console.log('cookies:', request.cookies.getAll().map(c => c.name))
-
-  const isPublicPath =
-    pathname === '/' ||
-    pathname === '/login' ||
-    pathname === '/register' ||
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/favicon')
-
-  function redirectTo(path: string) {
-    console.log(`⟶ REDIRECTING to ${path}`) // 🔍 DEBUG
-    const url = request.nextUrl.clone()
-    url.pathname = path
-    const res = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
-      res.cookies.set(name, value, rest)
+  // Helper: redirect while carrying over refreshed session cookies
+  function redirectWithCookies(url: string) {
+    const redirectResponse = NextResponse.redirect(new URL(url, request.url))
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
     })
-    return res
+    return redirectResponse
   }
 
-  if (!user && !isPublicPath) {
-    return redirectTo('/login')
+  // Public routes
+  const publicRoutes = ['/', '/login', '/register', '/auth/callback']
+  const isPublic = publicRoutes.some(r => pathname === r || pathname.startsWith('/api/'))
+
+  if (!user && !isPublic) {
+    return redirectWithCookies('/login')
   }
 
-  if (user && (pathname === '/login' || pathname === '/register')) {
-    const { data: profile } = await supabase
+  if (user) {
+    // Use maybeSingle() to avoid 500 errors; if profile fetch fails, fall through
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    const role = profile?.role ?? 'user'
-    console.log('role:', role) // 🔍 DEBUG
-
-    if (role === 'admin') return redirectTo('/admin')
-    if (role === 'security') return redirectTo('/security')
-    return redirectTo('/dashboard')
-  }
-
-  if (user && (pathname.startsWith('/admin') || pathname.startsWith('/security'))) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const role = profile?.role ?? 'user'
-
-    if (pathname.startsWith('/admin') && role !== 'admin') {
-      return redirectTo('/dashboard')
+    // If profile query errors (e.g. RLS/network), allow request through
+    // so the page itself can handle it rather than causing a redirect loop
+    if (profileError) {
+      console.error('[middleware] profile fetch error:', profileError.message)
+      return supabaseResponse
     }
+
+    const role = profile?.role ?? 'user'
+
+    // Redirect logged-in users away from auth pages
+    if (pathname === '/login' || pathname === '/register') {
+      if (role === 'admin') return redirectWithCookies('/admin')
+      if (role === 'security') return redirectWithCookies('/security')
+      return redirectWithCookies('/dashboard')
+    }
+
+    // Protect admin routes
+    if (pathname.startsWith('/admin') && role !== 'admin') {
+      return redirectWithCookies('/dashboard')
+    }
+
+    // Protect security routes
     if (pathname.startsWith('/security') && role !== 'security' && role !== 'admin') {
-      return redirectTo('/dashboard')
+      return redirectWithCookies('/dashboard')
     }
   }
 
