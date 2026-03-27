@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Admin client — bypasses client-side rate limits
+// Admin client — for user creation and profile updates
 const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -27,22 +27,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists in profiles
-    const { data: existing } = await adminSupabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
-
-    if (existing) {
+    // Check if email already exists
+    const { data: { users } } = await adminSupabase.auth.admin.listUsers()
+    const existingUser = users?.find(u => u.email === email)
+    
+    if (existingUser) {
       return NextResponse.json(
         { error: 'This email is already registered. Please sign in.' },
         { status: 400 }
       )
     }
 
-    // Create user — email_confirm: false sends the confirmation email
-    // Using admin API bypasses the 2 email/hour rate limit
+    // Create user first (without sending email)
     const { data: authData, error: authError } =
       await adminSupabase.auth.admin.createUser({
         email,
@@ -56,25 +52,27 @@ export async function POST(request: NextRequest) {
       })
 
     if (authError) {
-      if (
-        authError.message.toLowerCase().includes('already been registered') ||
-        authError.message.toLowerCase().includes('already registered') ||
-        authError.message.toLowerCase().includes('duplicate')
-      ) {
-        return NextResponse.json(
-          { error: 'This email is already registered. Please sign in.' },
-          { status: 400 }
-        )
-      }
+      console.error('Create user error:', authError)
       return NextResponse.json({ error: authError.message }, { status: 400 })
     }
 
-    // Update profile created by trigger with correct name/phone
+    // Update profile
     if (authData.user) {
       await adminSupabase
         .from('profiles')
         .update({ full_name, phone: phone || '', role: 'user' })
         .eq('id', authData.user.id)
+
+      // Now send the invite email (uses your custom SMTP)
+      const { error: inviteError } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      })
+
+      if (inviteError) {
+        console.error('Invite email error:', inviteError)
+        // User created but email failed - don't fail the whole registration
+        // They can use the resend button
+      }
     }
 
     return NextResponse.json({ success: true })

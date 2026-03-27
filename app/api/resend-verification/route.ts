@@ -39,18 +39,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use magiclink type — does not require password
-    // Clicking the link will confirm their email AND log them in
-    const { error } = await adminSupabase.auth.admin.generateLink({
-      type:  'magiclink',
-      email,
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
-      },
+    // Send invite email (uses your custom SMTP)
+    const { error: inviteError } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
     })
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (inviteError) {
+      console.error('Invite email error:', inviteError)
+      return NextResponse.json({ error: 'Failed to send email. Please try again.' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
