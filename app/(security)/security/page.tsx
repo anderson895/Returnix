@@ -82,7 +82,7 @@ export default async function SecurityDashboardPage() {
             ) : pendingClaims.map((claim: ClaimRequest & { found_items: { title: string; tracking_id: string; image_url: string }; profiles: { full_name: string; email: string } }) => (
               <Link key={claim.id} href={`/security/claims`}
                 className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-orange-500" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export default async function SecurityDashboardPage() {
               <div className="p-8 text-center text-gray-400 text-sm">No items logged yet.</div>
             ) : myFoundItems.map((item: FoundItem) => (
               <div key={item.id} className="flex items-center gap-3 p-4">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                   {item.image_url
                     ? <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                     : <Package className="w-5 h-5 text-gray-400 m-2.5" />}
