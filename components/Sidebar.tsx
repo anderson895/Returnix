@@ -3,52 +3,54 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import {
   LayoutDashboard, FileText, Search, ClipboardList, Bell,
-  Shield, Package, CheckSquare, Users, BarChart2, LogOut, Settings
+  Shield, Package, CheckSquare, Users, BarChart2, LogOut, Settings, MapPin
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
-interface SidebarProps {
-  profile: Profile
-  unreadCount?: number
-}
+// ── Palette ──────────────────────────────────────────────────────────────
+// burgundy   #75162E  →  sidebar base, nav header, footer
+// darkBurg   #550B18  →  logo bar (slightly darker strip)
+// deepMaroon #3A000C  →  active nav item bg
+// cream      #F2E5C5  →  all text, icons, accents
+// ─────────────────────────────────────────────────────────────────────────
+
+interface SidebarProps { profile: Profile; unreadCount?: number }
 
 const userNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/lost-items/report', label: 'Report Lost Item', icon: FileText },
-  { href: '/dashboard/search', label: 'Search Found Items', icon: Search },
-  { href: '/claims', label: 'My Claims', icon: ClipboardList },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/dashboard',         label: 'Dashboard',          icon: LayoutDashboard },
+  { href: '/lost-items/report', label: 'Report Lost Item',   icon: FileText },
+  { href: '/dashboard/search',  label: 'Search Found Items', icon: Search },
+  { href: '/claims',            label: 'My Claims',          icon: ClipboardList },
+  { href: '/notifications',     label: 'Notifications',      icon: Bell },
 ]
-
 const securityNav = [
-  { href: '/security', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/security',                 label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/security/found-items/new', label: 'Log Found Item', icon: Package },
-  { href: '/security/found-items', label: 'Found Items', icon: Search },
-  { href: '/security/claims', label: 'Verify Claims', icon: CheckSquare },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/security/found-items',     label: 'Found Items',  icon: Search },
+  { href: '/security/claims',          label: 'Verify Claims',icon: CheckSquare },
+  { href: '/notifications',            label: 'Notifications',icon: Bell },
 ]
-
 const adminNav = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/lost-items', label: 'Lost Items', icon: FileText },
-  { href: '/admin/found-items', label: 'Found Items', icon: Package },
-  { href: '/admin/claims', label: 'Claims', icon: CheckSquare },
-  { href: '/admin/reports', label: 'Reports', icon: BarChart2 },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/admin',             label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/admin/users',       label: 'Users',        icon: Users },
+  { href: '/admin/lost-items',  label: 'Lost Items',   icon: FileText },
+  { href: '/admin/found-items', label: 'Found Items',  icon: Package },
+  { href: '/admin/claims',      label: 'Claims',       icon: CheckSquare },
+  { href: '/admin/reports',     label: 'Reports',      icon: BarChart2 },
+  { href: '/notifications',     label: 'Notifications',icon: Bell },
 ]
+const roleLabels: Record<string, string> = {
+  admin: 'Administrator', security: 'Security Staff', user: 'Student / Staff',
+}
 
 export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
+  const router   = useRouter()
   const supabase = createClient()
-
   const nav = profile.role === 'admin' ? adminNav : profile.role === 'security' ? securityNav : userNav
-  const roleColor = { admin: 'text-purple-600 bg-purple-100', security: 'text-emerald-600 bg-emerald-100', user: 'text-blue-600 bg-blue-100' }
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -58,45 +60,69 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 z-20">
-      {/* Logo */}
-      <div className="p-5 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Search className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-gray-900">Returnix</span>
-        </div>
-      </div>
+    <aside className="w-64 min-h-screen flex flex-col fixed left-0 top-0 z-20"
+      style={{ background: '#75162E', fontFamily: "'Georgia', 'Times New Roman', serif" }}>
 
-      {/* Profile */}
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">
-            {profile.full_name?.[0]?.toUpperCase() || 'U'}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{profile.full_name || 'User'}</p>
-            <span className={cn('text-xs font-medium px-1.5 py-0.5 rounded-full capitalize', roleColor[profile.role])}>
-              {profile.role}
-            </span>
+      {/* Top cream accent line */}
+      <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, transparent, #F2E5C5, transparent)' }} />
+
+      {/* ── Logo bar — slightly darker strip ── */}
+      <div className="px-5 py-4 flex items-center gap-3"
+        style={{ background: '#550B18', borderBottom: '1px solid rgba(242,229,197,0.12)' }}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(242,229,197,0.15)', border: '1px solid rgba(242,229,197,0.3)' }}>
+          <MapPin className="w-4 h-4" style={{ color: '#F2E5C5' }} />
+        </div>
+        <div>
+          <div className="font-bold text-base" style={{ color: '#F2E5C5', letterSpacing: '0.05em' }}>Back2U</div>
+          <div style={{ color: 'rgba(242,229,197,0.5)', fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+            MSU Lost & Found
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+      {/* ── Profile ── */}
+      <div className="px-4 py-3 flex items-center gap-3"
+        style={{ borderBottom: '1px solid rgba(242,229,197,0.1)' }}>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+          style={{ background: 'rgba(242,229,197,0.18)', color: '#F2E5C5', border: '1.5px solid rgba(242,229,197,0.3)' }}>
+          {profile.full_name?.[0]?.toUpperCase() || 'U'}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold truncate" style={{ color: '#F2E5C5' }}>
+            {profile.full_name || 'User'}
+          </p>
+          <span className="text-xs px-2 py-0.5 rounded-full capitalize inline-block mt-0.5"
+            style={{ background: 'rgba(242,229,197,0.18)', color: '#F2E5C5', fontSize: '10px' }}>
+            {roleLabels[profile.role] ?? profile.role}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Nav ── */}
+      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {nav.map(item => {
-          const active = pathname === item.href || (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/security' && pathname.startsWith(item.href))
+          const active =
+            pathname === item.href ||
+            (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/security' &&
+             pathname.startsWith(item.href))
+
           return (
             <Link key={item.href} href={item.href}
-              className={cn('flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group',
-                active ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              )}>
-              <item.icon className={cn('w-4 h-4', active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600')} />
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150"
+              style={active
+                ? { background: '#550B18', color: '#F2E5C5', borderLeft: '3px solid #F2E5C5', paddingLeft: '9px' }
+                : { color: 'rgba(242,229,197,0.7)' }
+              }
+              onMouseOver={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(242,229,197,0.1)' }}
+              onMouseOut={e =>  { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0"
+                style={{ color: active ? '#F2E5C5' : 'rgba(242,229,197,0.5)' }} />
               <span className="flex-1">{item.label}</span>
               {item.label === 'Notifications' && unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                <span className="text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold flex-shrink-0"
+                  style={{ background: '#F2E5C5', color: '#75162E', fontSize: '10px' }}>
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -105,18 +131,28 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
         })}
       </nav>
 
-      {/* Bottom */}
-      <div className="p-3 border-t border-gray-100 space-y-0.5">
-        <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-          <Settings className="w-4 h-4 text-gray-400" />
+      {/* ── Bottom ── */}
+      <div className="px-3 py-3 space-y-0.5" style={{ borderTop: '1px solid rgba(242,229,197,0.1)' }}>
+        <Link href="/settings"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150"
+          style={{ color: 'rgba(242,229,197,0.7)' }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(242,229,197,0.1)' }}
+          onMouseOut={e =>  { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+          <Settings className="w-4 h-4" style={{ color: 'rgba(242,229,197,0.5)' }} />
           Settings
         </Link>
         <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-          <LogOut className="w-4 h-4" />
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150"
+          style={{ color: 'rgba(242,229,197,0.7)' }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(242,229,197,0.1)' }}
+          onMouseOut={e =>  { (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+          <LogOut className="w-4 h-4" style={{ color: 'rgba(242,229,197,0.5)' }} />
           Log Out
         </button>
       </div>
+
+      {/* Bottom cream accent line */}
+      <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, transparent, #F2E5C5, transparent)' }} />
     </aside>
   )
 }
