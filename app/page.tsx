@@ -9,8 +9,8 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/msu-campus.png')" }} />
 
-      {/* Body cream overlay — soft cream tint over the photo */}
-      <div className="absolute inset-0" style={{ background: 'rgba(242,229,197,0.35)' }} />
+      {/* Body cream overlay — increased to 0.72 for better readability */}
+      <div className="absolute inset-0" style={{ background: 'rgba(242,229,197,0.72)' }} />
 
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ background: '#75162E' }} />
@@ -52,7 +52,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="font-bold mb-6 leading-tight" style={{ fontFamily: "'Georgia', serif" }}>
-            <span className="block text-6xl md:text-8xl tracking-tight" style={{ color: '#3A000C', textShadow: '0 2px 8px rgba(242,229,197,0.4)' }}>
+            <span className="block text-6xl md:text-8xl tracking-tight" style={{ color: '#3A000C', textShadow: '0 2px 12px rgba(242,229,197,0.6)' }}>
               Back2U
             </span>
             <span className="block text-xl md:text-2xl mt-3 font-normal" style={{ color: '#550B18', letterSpacing: '0.08em' }}>
@@ -91,7 +91,7 @@ export default function HomePage() {
               { icon: Shield, title: 'Verified Claims', desc: 'Security personnel verify ownership before returning items' },
               { icon: Bell, title: 'Real-time Alerts', desc: 'Instant notifications when matches or updates are found' },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="p-5 rounded-xl" style={{ background: 'rgba(117,22,46,0.12)', border: '1px solid rgba(117,22,46,0.25)' }}>
+              <div key={title} className="p-5 rounded-xl" style={{ background: 'rgba(242,229,197,0.85)', border: '1px solid rgba(117,22,46,0.25)' }}>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ background: '#75162E' }}>
                   <Icon className="w-4 h-4" style={{ color: '#F2E5C5' }} />
                 </div>
@@ -101,7 +101,6 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-
         {/* FOOTER — solid burgundy */}
         <footer style={{ background: '#75162E', marginTop: '1.5rem' }}>
           <div className="text-center py-5 text-sm border-t" style={{ borderColor: 'rgba(242,229,197,0.15)', color: 'rgba(242,229,197,0.65)' }}>
