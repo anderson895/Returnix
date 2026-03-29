@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Shield, Bell, FileText, MapPin, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { Shield, Bell, FileText, ArrowRight } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -21,9 +22,15 @@ export default function HomePage() {
         <nav style={{ background: '#75162E' }}>
           <div className="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto w-full">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: 'rgba(242,229,197,0.15)', borderColor: 'rgba(242,229,197,0.35)' }}>
-                <MapPin className="w-5 h-5" style={{ color: '#F2E5C5' }} />
-              </div>
+              {/* School logo only in nav */}
+              <Image
+                src="/school_logo.png"
+                alt="Marinduque State University"
+                width={40}
+                height={40}
+                className="rounded-lg object-contain flex-shrink-0"
+                style={{ background: 'rgba(242,229,197,0.92)', padding: '3px' }}
+              />
               <div>
                 <span className="font-bold text-xl" style={{ color: '#F2E5C5', fontFamily: "'Georgia', serif", letterSpacing: '0.05em' }}>Back2U</span>
                 <div style={{ color: 'rgba(242,229,197,0.6)', fontSize: '9px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Lost & Found System</div>
@@ -52,6 +59,16 @@ export default function HomePage() {
           </div>
 
           <h1 className="font-bold mb-6 leading-tight" style={{ fontFamily: "'Georgia', serif" }}>
+            {/* System logo in hero */}
+            <span className="flex justify-center mb-4">
+              <Image
+                src="/system_logo.png"
+                alt="Back2U System Logo"
+                width={96}
+                height={96}
+                className="object-contain drop-shadow-lg"
+              />
+            </span>
             <span className="block text-6xl md:text-8xl tracking-tight" style={{ color: '#3A000C', textShadow: '0 2px 12px rgba(242,229,197,0.6)' }}>
               Back2U
             </span>

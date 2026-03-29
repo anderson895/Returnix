@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, LogIn, Mail } from 'lucide-react'
@@ -180,6 +181,16 @@ function Card({ children }: { children: React.ReactNode }) {
 function CardHeader({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="text-center mb-6">
+      {/* System logo */}
+      <div className="flex justify-center mb-4">
+        <Image
+          src="/system_logo.png"
+          alt="Back2U"
+          width={72}
+          height={72}
+          className="object-contain drop-shadow"
+        />
+      </div>
       <div className="flex items-center gap-3 justify-center mb-3">
         <div className="h-px w-14" style={{ background: 'rgba(242,229,197,0.2)' }} />
         <div className="w-1 h-1 rounded-full" style={{ background: 'rgba(242,229,197,0.5)' }} />

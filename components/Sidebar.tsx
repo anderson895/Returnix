@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
   LayoutDashboard, FileText, Search, ClipboardList, Bell,
-  Shield, Package, CheckSquare, Users, BarChart2, LogOut, Settings, MapPin
+  Shield, Package, CheckSquare, Users, BarChart2, LogOut, Settings
 } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -67,14 +68,19 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
       <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, transparent, #F2E5C5, transparent)' }} />
 
       {/* ── Logo bar — slightly darker strip ── */}
-      <div className="px-5 py-4 flex items-center gap-3"
+      <div className="px-4 py-3 flex items-center gap-3"
         style={{ background: '#550B18', borderBottom: '1px solid rgba(242,229,197,0.12)' }}>
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(242,229,197,0.15)', border: '1px solid rgba(242,229,197,0.3)' }}>
-          <MapPin className="w-4 h-4" style={{ color: '#F2E5C5' }} />
-        </div>
-        <div>
-          <div className="font-bold text-base" style={{ color: '#F2E5C5', letterSpacing: '0.05em' }}>Back2U</div>
+        {/* School logo only */}
+        <Image
+          src="/school_logo.png"
+          alt="Marinduque State University"
+          width={36}
+          height={36}
+          className="rounded-lg object-contain flex-shrink-0"
+          style={{ background: 'rgba(242,229,197,0.92)', padding: '3px' }}
+        />
+        <div className="min-w-0">
+          <div className="font-bold text-base truncate" style={{ color: '#F2E5C5', letterSpacing: '0.05em' }}>Back2U</div>
           <div style={{ color: 'rgba(242,229,197,0.5)', fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             MSU Lost & Found
           </div>
