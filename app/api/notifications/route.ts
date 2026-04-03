@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { logError } from '@/lib/errorLogger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,9 +12,25 @@ export async function POST(request: NextRequest) {
       user_id, title, message, type, related_item_id, related_type,
     })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      await logError({
+        message: error.message,
+        route: '/api/notifications',
+        action: 'insert_notification',
+        userId: user_id,
+        metadata: { body },
+      })
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
     return NextResponse.json({ success: true })
-  } catch (err) {
+  } catch (err: any) {
+    await logError({
+      message: err?.message || 'Failed to send notification',
+      error: err,
+      route: '/api/notifications',
+      action: 'post_notification',
+    })
     return NextResponse.json({ error: 'Failed to send notification' }, { status: 500 })
   }
 }
