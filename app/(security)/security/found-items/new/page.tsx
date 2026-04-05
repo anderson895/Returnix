@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input, Textarea, Select, Button, Card } from '@/components/ui'
 import ImageUpload from '@/components/ImageUpload'
@@ -11,7 +10,6 @@ import { Package, ArrowLeft, Shield } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LogFoundItemPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | undefined>()
   const [submittedItem, setSubmittedItem] = useState<{ tracking_id: string; title: string } | null>(null)
@@ -43,6 +41,53 @@ export default function LogFoundItemPage() {
     if (error) { toast.error(error.message); setLoading(false); return }
 
     toast.success('Found item logged successfully!')
+
+    // Notify users who have a matching lost item report (same category)
+    const { data: matchingLostItems } = await supabase
+      .from('lost_items')
+      .select('id, title, user_id, profiles(email, full_name)')
+      .eq('category', form.category)
+      .eq('status', 'searching')
+
+    if (matchingLostItems && matchingLostItems.length > 0) {
+      const notifyPromises = matchingLostItems.map(async (lostItem: any) => {
+        const userEmail = lostItem.profiles?.email
+        const userName = lostItem.profiles?.full_name || 'User'
+        if (!userEmail) return
+
+        // In-app notification
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: lostItem.user_id,
+            title: '🎉 Possible Match Found!',
+            message: `A new found item "${data.title}" may match your lost item "${lostItem.title}". Check it out!`,
+            type: 'item_found',
+            related_item_id: data.id,
+            related_type: 'found_item',
+          }),
+        })
+
+        // Email notification
+        await fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'match_found',
+            to: userEmail,
+            userName,
+            itemTitle: lostItem.title,
+            foundItemTitle: data.title,
+            trackingId: data.tracking_id,
+            location: data.location_found,
+          }),
+        })
+      })
+
+      await Promise.allSettled(notifyPromises)
+    }
+
     setSubmittedItem({ tracking_id: data.tracking_id, title: data.title })
     setLoading(false)
   }
@@ -62,7 +107,11 @@ export default function LogFoundItemPage() {
             <p className="text-sm text-gray-600 mt-1">{submittedItem.title}</p>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => { setSubmittedItem(null); setForm({ title: '', description: '', category: '', date_found: '', location_found: '', color: '', brand: '' }); setImageUrl(undefined) }} className="flex-1">
+            <Button onClick={() => {
+              setSubmittedItem(null)
+              setForm({ title: '', description: '', category: '', date_found: '', location_found: '', color: '', brand: '' })
+              setImageUrl(undefined)
+            }} className="flex-1">
               Log Another Item
             </Button>
             <Link href="/security" className="flex-1">
