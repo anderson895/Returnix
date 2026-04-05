@@ -63,7 +63,7 @@ export default function SecurityClaimsPage() {
       await supabase.from('found_items').update({ status: 'unclaimed' }).eq('id', claim.found_item_id)
     }
 
-    // Notify user
+    // Notify user (in-app)
     const notifData = action === 'approved'
       ? { title: 'Claim Approved! 🎉', message: `Your claim for the item has been approved. Please visit the security office to retrieve your item.`, type: 'claim_approved' }
       : { title: 'Claim Rejected', message: `Your claim was rejected. Reason: ${rejectionReason}`, type: 'claim_rejected' }
@@ -73,6 +73,27 @@ export default function SecurityClaimsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: claim.user_id, ...notifData, related_item_id: claim.id, related_type: 'claim' }),
     })
+
+    // Notify user via email
+    const claimantEmail = (claim as any).profiles?.email
+    const claimantName = (claim as any).profiles?.full_name || 'User'
+    const itemTitle = (claim as any).found_items?.title || 'your item'
+    const trackingId = (claim as any).found_items?.tracking_id || ''
+
+    if (claimantEmail) {
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: action === 'approved' ? 'claim_approved' : 'claim_rejected',
+          to: claimantEmail,
+          userName: claimantName,
+          itemTitle,
+          trackingId,
+          ...(action === 'rejected' && { rejectionReason }),
+        }),
+      })
+    }
 
     toast.success(`Claim ${action} successfully!`)
     setSelected(null)
