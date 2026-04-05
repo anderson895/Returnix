@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/', '/login', '/register', '/auth/callback']
   const isPublic = publicRoutes.some(r => pathname === r || pathname.startsWith('/api/'))
 
+  // Not logged in → send to login
   if (!user && !isPublic) {
     return redirectWithCookies('/login')
   }
@@ -50,7 +51,6 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     if (profileError) {
-      // Log to console only — cannot use logError() here (middleware has no async DB access)
       console.error('[middleware] profile fetch error:', profileError.message, {
         userId: user.id,
         pathname,
@@ -60,18 +60,43 @@ export async function middleware(request: NextRequest) {
 
     const role = profile?.role ?? 'user'
 
+    // Already logged in → redirect away from auth pages to their home
     if (pathname === '/login' || pathname === '/register') {
       if (role === 'admin') return redirectWithCookies('/admin')
       if (role === 'security') return redirectWithCookies('/security')
       return redirectWithCookies('/dashboard')
     }
 
-    if (pathname.startsWith('/admin') && role !== 'admin') {
-      return redirectWithCookies('/dashboard')
+    // ── ADMIN routes: admin only ──────────────────────────────
+    if (pathname.startsWith('/admin')) {
+      if (role !== 'admin') {
+        if (role === 'security') return redirectWithCookies('/security')
+        return redirectWithCookies('/dashboard')
+      }
     }
 
-    if (pathname.startsWith('/security') && role !== 'security' && role !== 'admin') {
-      return redirectWithCookies('/dashboard')
+    // ── SECURITY routes: security + admin only ────────────────
+    if (pathname.startsWith('/security')) {
+      if (role !== 'security' && role !== 'admin') {
+        return redirectWithCookies('/dashboard')
+      }
+    }
+
+    // ── USER routes: regular users only ──────────────────────
+    // Security and admin should not be browsing user pages
+    const userOnlyPrefixes = [
+      '/dashboard',
+      '/lost-items',
+      '/found-items',
+      '/claims',
+      '/notifications',
+      '/settings',
+    ]
+    const isUserRoute = userOnlyPrefixes.some(p => pathname.startsWith(p))
+
+    if (isUserRoute && (role === 'security' || role === 'admin')) {
+      if (role === 'security') return redirectWithCookies('/security')
+      if (role === 'admin') return redirectWithCookies('/admin')
     }
   }
 
