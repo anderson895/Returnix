@@ -8,12 +8,12 @@ import { Eye, EyeOff, UserPlus, Mail, CheckCircle } from 'lucide-react'
 
 // Same palette as login + sidebar + landing
 const fieldBase = {
-  background: 'rgba(242,229,197,0.1)',
-  border: '1px solid rgba(242,229,197,0.22)',
-  color: '#F2E5C5',
+  background: '#ffffff',
+  border: '1px solid rgba(242,229,197,0.4)',
+  color: '#3A000C',
 }
-const FOCUS_BORDER  = 'rgba(242,229,197,0.6)'
-const NORMAL_BORDER = 'rgba(242,229,197,0.22)'
+const FOCUS_BORDER  = '#F2E5C5'
+const NORMAL_BORDER = 'rgba(242,229,197,0.4)'
 const onFocus = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = FOCUS_BORDER }
 const onBlur  = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = NORMAL_BORDER }
 

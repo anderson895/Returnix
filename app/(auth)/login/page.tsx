@@ -15,12 +15,12 @@ import { Eye, EyeOff, LogIn, Mail } from 'lucide-react'
 // ─────────────────────────────────────────────────────────────────────────
 
 const fieldBase = {
-  background: 'rgba(242,229,197,0.1)',
-  border: '1px solid rgba(242,229,197,0.22)',
-  color: '#F2E5C5',
+  background: '#ffffff',
+  border: '1px solid rgba(242,229,197,0.4)',
+  color: '#3A000C',
 }
-const FOCUS_BORDER  = 'rgba(242,229,197,0.6)'
-const NORMAL_BORDER = 'rgba(242,229,197,0.22)'
+const FOCUS_BORDER  = '#F2E5C5'
+const NORMAL_BORDER = 'rgba(242,229,197,0.4)'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
