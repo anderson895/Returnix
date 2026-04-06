@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
+    const next = requestUrl.searchParams.get('next') // e.g. /reset-password
     const origin = requestUrl.origin
 
     if (code) {
@@ -20,6 +21,11 @@ export async function GET(request: NextRequest) {
           action: 'exchange_code_for_session',
         })
         return NextResponse.redirect(`${origin}/login`)
+      }
+
+      // If a `next` redirect was specified (e.g. password recovery), go there directly
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`)
       }
 
       const { data: { user } } = await supabase.auth.getUser()

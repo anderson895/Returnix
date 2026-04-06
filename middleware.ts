@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
     return redirectResponse
   }
 
-  const publicRoutes = ['/', '/login', '/register', '/auth/callback']
+  const publicRoutes = ['/', '/login', '/register', '/auth/callback', '/forgot-password', '/reset-password']
   const isPublic = publicRoutes.some(r => pathname === r || pathname.startsWith('/api/'))
 
   // Not logged in → send to login
