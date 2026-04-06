@@ -1,99 +1,114 @@
-import { createClient } from '@/lib/supabase/server'
-import { notFound, redirect } from 'next/navigation'
-import { Badge, Card, Button } from '@/components/ui'
-import { MapPin, Calendar, Tag, ArrowLeft, Edit, Package } from 'lucide-react'
-import { formatDate, formatDateTime } from '@/lib/utils'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Card, Badge } from '@/components/ui'
+import { ArrowLeft, MapPin, Calendar, Tag, FileText } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import type { LostItem } from '@/types'
 
-export default async function LostItemDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+export default function LostItemDetailPage() {
+  const { id } = useParams()
+  const router = useRouter()
+  const supabase = createClient()
+  const [item, setItem] = useState<LostItem | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const { id } = await params
-  const { data: item } = await supabase.from('lost_items').select('*, profiles(full_name, email, phone)').eq('id', id).single()
-  if (!item) notFound()
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
 
-  const isOwner = item.user_id === user.id
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const isAdmin = profile?.role === 'admin'
+      const { data } = await supabase
+        .from('lost_items')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (!data) { toast.error('Item not found'); router.push('/dashboard'); return }
+      setItem(data)
+      setLoading(false)
+    }
+    load()
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    )
+  }
+
+  if (!item) return null
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
+        <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Lost Item Report</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{item.title}</h1>
+          <p className="text-gray-500 text-sm">Lost item details</p>
+        </div>
+        <div className="ml-auto">
+          <Badge variant={item.status}>{item.status}</Badge>
+        </div>
       </div>
 
-      <Card className="overflow-hidden">
-        {item.image_url && (
-          <div className="h-56 overflow-hidden">
-            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
-          </div>
-        )}
-        <div className="p-6 space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="text-xl font-bold text-gray-900">{item.title}</h2>
-            <Badge variant={item.status}>{item.status}</Badge>
-          </div>
+      {item.image_url && (
+        <Card className="overflow-hidden">
+          <img src={item.image_url} alt={item.title} className="w-full max-h-80 object-cover" />
+        </Card>
+      )}
 
-          <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Tag className="w-4 h-4 text-gray-400" />
-              <span>{item.category}</span>
-            </div>
-            {item.color && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <span className="text-gray-400">🎨</span>
-                <span>{item.color}</span>
-              </div>
-            )}
-            {item.brand && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <span className="text-gray-400">🏷</span>
-                <span>{item.brand}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 text-gray-600">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <span>Lost on {formatDate(item.date_lost)}</span>
-            </div>
-            <div className="col-span-2 flex items-start gap-2 text-gray-600">
-              <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-              <span>{item.location_lost}</span>
-            </div>
-          </div>
-
-          {item.description && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-1">Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
-            </div>
-          )}
-
-          <div className="pt-3 border-t border-gray-100 text-xs text-gray-400">
-            <p>Reported by: {item.profiles?.full_name}</p>
-            <p>Submitted: {formatDateTime(item.created_at)}</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* Browse found items */}
-      <Card className="p-5">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-            <Package className="w-5 h-5 text-blue-600" />
+      <Card className="p-6 space-y-4">
+        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-600" /> Item Details
+        </h2>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-500">Category</span>
+            <p className="font-medium text-gray-900">{item.category}</p>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Check Found Items</h3>
-            <p className="text-sm text-gray-500">Search our database for your item</p>
+            <span className="text-gray-500">Date Lost</span>
+            <p className="font-medium text-gray-900 flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(item.date_lost)}</p>
           </div>
+          <div>
+            <span className="text-gray-500">Location Lost</span>
+            <p className="font-medium text-gray-900 flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.location_lost}</p>
+          </div>
+          {item.color && (
+            <div>
+              <span className="text-gray-500">Color</span>
+              <p className="font-medium text-gray-900">{item.color}</p>
+            </div>
+          )}
+          {item.brand && (
+            <div>
+              <span className="text-gray-500">Brand</span>
+              <p className="font-medium text-gray-900">{item.brand}</p>
+            </div>
+          )}
         </div>
-        <Link href="/dashboard/search">
-          <Button className="w-full">Browse Found Items</Button>
+        {item.description && (
+          <div>
+            <span className="text-gray-500 text-sm">Description</span>
+            <p className="text-gray-900 text-sm mt-1">{item.description}</p>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-4 text-center">
+        <p className="text-sm text-gray-500 mb-3">Think you spotted a matching found item?</p>
+        <Link href="/dashboard/search" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+          Browse Found Items →
         </Link>
       </Card>
     </div>

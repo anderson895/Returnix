@@ -319,4 +319,3 @@ my-app/
    - **Redirect URLs:** `https://your-app.vercel.app/api/auth/callback`
 5. Deploy
 
-> ✅ Nodemailer with Gmail works on Vercel — no additional configuration needed.
