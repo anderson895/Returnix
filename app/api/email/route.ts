@@ -29,7 +29,7 @@ function baseTemplate(title: string, preheader: string, bodyHtml: string) {
           <td style="background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 100%);padding:32px 40px;text-align:center;">
             <div style="font-size:28px;margin-bottom:8px;">🎒</div>
             <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">MarSU Lost &amp; Found System</h1>
-            <p style="margin:6px 0 0;color:#bfdbfe;font-size:13px;">Mindanao State University</p>
+            <p style="margin:6px 0 0;color:#bfdbfe;font-size:13px;">Marinduque State University</p>
           </td>
         </tr>
         <tr>
