@@ -82,7 +82,7 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
         <div className="min-w-0">
           <div className="font-bold text-base truncate" style={{ color: '#F2E5C5', letterSpacing: '0.05em' }}>Back2U</div>
           <div style={{ color: 'rgba(242,229,197,0.5)', fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-            MSU Lost & Found
+            MarSU Lost & Found
           </div>
         </div>
       </div>

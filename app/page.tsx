@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
 
-      {/* Background: MSU campus image */}
+      {/* Background: MarSU campus image */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/msu-campus.png')" }} />
 

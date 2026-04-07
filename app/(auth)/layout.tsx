@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen relative flex flex-col" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
 
-      {/* MSU campus background */}
+      {/* MarSU campus background */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/msu-campus.png')" }} />
       {/* Cream tint over body */}
@@ -26,7 +26,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             />
             <div>
               <div className="font-bold text-base" style={{ color: '#F2E5C5', letterSpacing: '0.05em' }}>Back2U</div>
-              <div style={{ color: 'rgba(242,229,197,0.55)', fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>MSU Lost & Found</div>
+              <div style={{ color: 'rgba(242,229,197,0.55)', fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>MarSU Lost & Found</div>
             </div>
           </Link>
         </div>

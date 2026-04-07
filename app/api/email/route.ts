@@ -28,7 +28,7 @@ function baseTemplate(title: string, preheader: string, bodyHtml: string) {
         <tr>
           <td style="background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 100%);padding:32px 40px;text-align:center;">
             <div style="font-size:28px;margin-bottom:8px;">🎒</div>
-            <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">MSU Lost &amp; Found System</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">MarSU Lost &amp; Found System</h1>
             <p style="margin:6px 0 0;color:#bfdbfe;font-size:13px;">Mindanao State University</p>
           </td>
         </tr>
@@ -38,7 +38,7 @@ function baseTemplate(title: string, preheader: string, bodyHtml: string) {
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
-              This is an automated message from the MSU Lost &amp; Found System.<br/>
+              This is an automated message from the MarSU Lost &amp; Found System.<br/>
               Please do not reply to this email.
             </p>
           </td>
@@ -51,7 +51,7 @@ function baseTemplate(title: string, preheader: string, bodyHtml: string) {
 }
 
 function claimApprovedTemplate(userName: string, itemTitle: string, trackingId: string) {
-  return baseTemplate('Claim Approved — MSU Lost & Found', 'Your claim has been approved!', `
+  return baseTemplate('Claim Approved — MarSU Lost & Found', 'Your claim has been approved!', `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="width:64px;height:64px;background:#d1fae5;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;">✅</div>
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Claim Approved!</h2>
@@ -69,7 +69,7 @@ function claimApprovedTemplate(userName: string, itemTitle: string, trackingId: 
 }
 
 function claimRejectedTemplate(userName: string, itemTitle: string, reason: string) {
-  return baseTemplate('Claim Update — MSU Lost & Found', 'Update on your claim request.', `
+  return baseTemplate('Claim Update — MarSU Lost & Found', 'Update on your claim request.', `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="width:64px;height:64px;background:#fee2e2;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;">❌</div>
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Claim Not Approved</h2>
@@ -87,7 +87,7 @@ function claimRejectedTemplate(userName: string, itemTitle: string, reason: stri
 }
 
 function noMatchYetTemplate(userName: string, itemTitle: string, category: string) {
-  return baseTemplate('Lost Item Report Received — MSU Lost & Found', "We received your report! We'll notify you when a match is found.", `
+  return baseTemplate('Lost Item Report Received — MarSU Lost & Found', "We received your report! We'll notify you when a match is found.", `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="width:64px;height:64px;background:#ede9fe;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;">🔍</div>
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Report Received!</h2>
@@ -112,7 +112,7 @@ function noMatchYetTemplate(userName: string, itemTitle: string, category: strin
 }
 
 function newMatchFoundTemplate(userName: string, lostItemTitle: string, foundItemTitle: string, trackingId: string, location: string) {
-  return baseTemplate('Possible Match Found — MSU Lost & Found', `A new found item may match your lost ${lostItemTitle}!`, `
+  return baseTemplate('Possible Match Found — MarSU Lost & Found', `A new found item may match your lost ${lostItemTitle}!`, `
     <div style="text-align:center;margin-bottom:28px;">
       <div style="width:64px;height:64px;background:#fef3c7;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;">🎉</div>
       <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">Possible Match Found!</h2>
@@ -158,19 +158,19 @@ export async function POST(request: NextRequest) {
 
     switch (type) {
       case 'claim_approved':
-        subject = '🎉 Your Claim Has Been Approved — MSU Lost & Found'
+        subject = '🎉 Your Claim Has Been Approved — MarSU Lost & Found'
         html = claimApprovedTemplate(userName, itemTitle, trackingId)
         break
       case 'claim_rejected':
-        subject = 'Update on Your Claim — MSU Lost & Found'
+        subject = 'Update on Your Claim — MarSU Lost & Found'
         html = claimRejectedTemplate(userName, itemTitle, rejectionReason)
         break
       case 'no_match_yet':
-        subject = '📋 Lost Item Report Received — MSU Lost & Found'
+        subject = '📋 Lost Item Report Received — MarSU Lost & Found'
         html = noMatchYetTemplate(userName, itemTitle, category)
         break
       case 'match_found':
-        subject = '🎉 Possible Match Found for Your Lost Item — MSU Lost & Found'
+        subject = '🎉 Possible Match Found for Your Lost Item — MarSU Lost & Found'
         html = newMatchFoundTemplate(userName, itemTitle, foundItemTitle, trackingId, location)
         break
       default:
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
 
     const transporter = createTransporter()
     await transporter.sendMail({
-      from: `"MSU Lost & Found" <${process.env.GMAIL_USER}>`,
+      from: `"MarSU Lost & Found" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
