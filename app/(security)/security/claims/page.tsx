@@ -14,7 +14,7 @@ export default function SecurityClaimsPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<ClaimRequest | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
-  const [processing, setProcessing] = useState(false)
+  const [processingAction, setProcessingAction] = useState<'approved' | 'rejected' | null>(null)
   const supabase = createClient()
 
   async function load() {
@@ -39,7 +39,7 @@ export default function SecurityClaimsPage() {
       toast.error('Please provide a rejection reason')
       return
     }
-    setProcessing(true)
+    setProcessingAction(action)
     const { data: { user } } = await supabase.auth.getUser()
 
     const { error } = await supabase.from('claim_requests').update({
@@ -49,18 +49,37 @@ export default function SecurityClaimsPage() {
       rejection_reason: action === 'rejected' ? rejectionReason : null,
     }).eq('id', claim.id)
 
-    if (error) { toast.error(error.message); setProcessing(false); return }
+    if (error) { toast.error(error.message); setProcessingAction(null); return }
 
     // Update found item status
     if (action === 'approved') {
-      await supabase.from('found_items').update({ status: 'claimed' }).eq('id', claim.found_item_id)
+      const { error: foundItemError } = await supabase
+        .from('found_items')
+        .update({ status: 'claimed' })
+        .eq('id', claim.found_item_id)
+
+      if (foundItemError) {
+        toast.error('Claim approved but failed to update item status: ' + foundItemError.message)
+        setProcessingAction(null)
+        return
+      }
+
       // Update lost item if linked
       if (claim.lost_item_id) {
         await supabase.from('lost_items').update({ status: 'claimed' }).eq('id', claim.lost_item_id)
       }
     } else {
       // Reset found item back to unclaimed
-      await supabase.from('found_items').update({ status: 'unclaimed' }).eq('id', claim.found_item_id)
+      const { error: resetError } = await supabase
+        .from('found_items')
+        .update({ status: 'unclaimed' })
+        .eq('id', claim.found_item_id)
+
+      if (resetError) {
+        toast.error('Failed to reset item status: ' + resetError.message)
+        setProcessingAction(null)
+        return
+      }
     }
 
     // Notify user (in-app)
@@ -99,7 +118,7 @@ export default function SecurityClaimsPage() {
     setSelected(null)
     setRejectionReason('')
     load()
-    setProcessing(false)
+    setProcessingAction(null)
   }
 
   const tabs = ['pending', 'approved', 'rejected', 'all'] as const
@@ -236,14 +255,14 @@ export default function SecurityClaimsPage() {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={2} />
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => handleVerify(selected, 'approved')} disabled={processing}
+                    <button type="button" onClick={() => handleVerify(selected, 'approved')} disabled={processingAction !== null}
                       className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
-                      {processing ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                      {processingAction === 'approved' ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                       Approve Claim
                     </button>
-                    <button onClick={() => handleVerify(selected, 'rejected')} disabled={processing}
+                    <button type="button" onClick={() => handleVerify(selected, 'rejected')} disabled={processingAction !== null}
                       className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
-                      {processing ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <X className="w-4 h-4" />}
+                      {processingAction === 'rejected' ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <X className="w-4 h-4" />}
                       Reject Claim
                     </button>
                   </div>

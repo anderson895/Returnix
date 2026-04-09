@@ -113,21 +113,31 @@ export default function AdminUsersPage() {
     e.preventDefault()
     if (!editTarget) return
     setSaving(true)
-    const { error } = await supabase.from('profiles').update({
-      full_name:  editForm.full_name,
-      phone:      editForm.phone,
-      role:       editForm.role,
-      updated_at: new Date().toISOString(),
-    }).eq('id', editTarget.id)
+    try {
+      const res = await fetch('/api/admin/update-user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id:        editTarget.id,
+          full_name: editForm.full_name,
+          phone:     editForm.phone,
+          role:      editForm.role,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update user')
 
-    if (error) { toast.error(error.message); setSaving(false); return }
-    setUsers(u => u.map(x => x.id === editTarget.id
-      ? { ...x, full_name: editForm.full_name, phone: editForm.phone, role: editForm.role }
-      : x
-    ))
-    toast.success('User updated!')
-    setEditTarget(null)
-    setSaving(false)
+      setUsers(u => u.map(x => x.id === editTarget.id
+        ? { ...x, full_name: editForm.full_name, phone: editForm.phone, role: editForm.role }
+        : x
+      ))
+      toast.success('User updated!')
+      setEditTarget(null)
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // ── Toggle Active ─────────────────────────────────────

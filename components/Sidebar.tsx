@@ -108,9 +108,11 @@ export default function Sidebar({ profile, unreadCount = 0 }: SidebarProps) {
       {/* ── Nav ── */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {nav.map(item => {
+          const exactMatch = nav.some(n => n.href === pathname)
           const active =
             pathname === item.href ||
-            (item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/security' &&
+            (!exactMatch &&
+             item.href !== '/dashboard' && item.href !== '/admin' && item.href !== '/security' &&
              pathname.startsWith(item.href))
 
           return (
