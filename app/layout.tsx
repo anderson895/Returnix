@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import { RecoveryRedirect } from '@/components/RecoveryRedirect'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geist.variable} h-full`}>
       <body className="min-h-full bg-gray-50 font-sans antialiased">
+        <RecoveryRedirect />
         {children}
         <Toaster
           position="top-right"

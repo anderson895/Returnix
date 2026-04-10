@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       type: 'recovery',
       email,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback?next=/reset-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}`,
       },
     })
 
