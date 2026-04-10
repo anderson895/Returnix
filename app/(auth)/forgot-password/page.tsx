@@ -1,12 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, KeyRound, CheckCircle } from 'lucide-react'
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 
 const fieldBase = {
   background: '#ffffff',
@@ -16,78 +14,45 @@ const fieldBase = {
 const FOCUS_BORDER  = '#F2E5C5'
 const NORMAL_BORDER = 'rgba(242,229,197,0.22)'
 
-export default function ResetPasswordPage() {
-  const router = useRouter()
-  const [password, setPassword]       = useState('')
-  const [confirm, setConfirm]         = useState('')
-  const [showPass, setShowPass]       = useState(false)
-  const [showConf, setShowConf]       = useState(false)
-  const [loading, setLoading]         = useState(false)
-  const [done, setDone]               = useState(false)
-  const [sessionReady, setSessionReady] = useState(false)
+export default function ForgotPasswordPage() {
+  const [email, setEmail]     = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent]       = useState(false)
 
-  // Supabase puts the user in a recovery session after the callback
-  // exchange — we just need to wait for onAuthStateChange to fire
-  useEffect(() => {
-    const supabase = createClient()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setSessionReady(true)
-      }
-    })
-
-    // RecoveryRedirect saves tokens to sessionStorage before navigating here
-    // because Next.js router.replace strips URL hash fragments
-    const access_token  = sessionStorage.getItem('recovery_access_token')
-    const refresh_token = sessionStorage.getItem('recovery_refresh_token')
-
-    if (access_token && refresh_token) {
-      sessionStorage.removeItem('recovery_access_token')
-      sessionStorage.removeItem('recovery_refresh_token')
-      supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
-        if (!error) setSessionReady(true)
-      })
-    } else {
-      // Fallback: page opened directly with an existing session
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) setSessionReady(true)
-      })
-    }
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  async function handleReset(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.')
-      return
-    }
-    if (password !== confirm) {
-      toast.error('Passwords do not match.')
+    if (!email.trim()) {
+      toast.error('Please enter your email address.')
       return
     }
 
     setLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password })
-    setLoading(false)
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
 
-    if (error) {
-      toast.error(error.message)
-      return
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Something went wrong. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      setSent(true)
+    } catch {
+      toast.error('Network error. Please try again.')
+    } finally {
+      setLoading(false)
     }
-
-    setDone(true)
-    // Sign out so user logs in fresh with new password
-    await supabase.auth.signOut()
-    setTimeout(() => router.push('/login'), 3000)
   }
 
-  // ── Success state ──
-  if (done) {
+  // ── Email sent success state ──
+  if (sent) {
     return (
       <div className="w-full max-w-md">
         <Card>
@@ -98,114 +63,85 @@ export default function ResetPasswordPage() {
             <CheckCircle className="w-8 h-8" style={{ color: '#F2E5C5' }} />
           </div>
           <h2 className="text-xl font-bold mb-2 text-center" style={{ color: '#F2E5C5' }}>
-            Password Updated!
+            Check Your Email
           </h2>
-          <p className="text-sm text-center mb-5" style={{ color: 'rgba(242,229,197,0.6)' }}>
-            Your password has been changed successfully. Redirecting you to the sign-in page…
+          <p className="text-sm text-center mb-2" style={{ color: 'rgba(242,229,197,0.6)' }}>
+            We&apos;ve sent a password reset link to:
           </p>
-          <Link
-            href="/login"
-            className="w-full font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
+          <p className="text-sm text-center font-semibold mb-5" style={{ color: '#F2E5C5' }}>
+            {email}
+          </p>
+          <p className="text-xs text-center mb-6" style={{ color: 'rgba(242,229,197,0.45)' }}>
+            Didn&apos;t receive the email? Check your spam folder or try again with a different email.
+          </p>
+          <button
+            onClick={() => { setSent(false); setEmail('') }}
+            className="w-full font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition mb-3"
             style={{ background: '#F2E5C5', color: '#3A000C' }}
           >
-            Go to Sign In
-          </Link>
+            <Mail className="w-4 h-4" />
+            Try Another Email
+          </button>
+          <div className="text-center">
+            <Link
+              href="/login"
+              className="text-sm transition inline-flex items-center gap-1"
+              style={{ color: 'rgba(242,229,197,0.5)' }}
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Back to Sign In
+            </Link>
+          </div>
         </Card>
       </div>
     )
   }
 
-  // ── Reset form ──
+  // ── Email input form ──
   return (
     <div className="w-full max-w-md">
       <Card>
         <CardHeader
-          title="Set New Password"
-          sub="Choose a strong password for your account"
+          title="Forgot Password"
+          sub="Enter your email and we'll send you a reset link"
         />
-        <form onSubmit={handleReset} className="space-y-4">
-          <Field label="New Password">
-            <div className="relative">
-              <input
-                type={showPass ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                className="w-full rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition"
-                style={fieldBase}
-                onFocus={e => { e.currentTarget.style.borderColor = FOCUS_BORDER }}
-                onBlur={e  => { e.currentTarget.style.borderColor = NORMAL_BORDER }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(!showPass)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-                style={{ color: 'rgba(242,229,197,0.45)' }}
-              >
-                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Email Address">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition"
+              style={fieldBase}
+              onFocus={e => { e.currentTarget.style.borderColor = FOCUS_BORDER }}
+              onBlur={e  => { e.currentTarget.style.borderColor = NORMAL_BORDER }}
+            />
           </Field>
-
-          <Field label="Confirm Password">
-            <div className="relative">
-              <input
-                type={showConf ? 'text' : 'password'}
-                required
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
-                placeholder="Re-enter password"
-                className="w-full rounded-lg px-4 py-2.5 pr-10 text-sm outline-none transition"
-                style={fieldBase}
-                onFocus={e => { e.currentTarget.style.borderColor = FOCUS_BORDER }}
-                onBlur={e  => { e.currentTarget.style.borderColor = NORMAL_BORDER }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConf(!showConf)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-                style={{ color: 'rgba(242,229,197,0.45)' }}
-              >
-                {showConf ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </Field>
-
-          {/* Strength hint */}
-          {password.length > 0 && (
-            <PasswordStrength password={password} />
-          )}
 
           <button
             type="submit"
-            disabled={loading || !sessionReady}
+            disabled={loading}
             className="w-full font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition"
-            style={{ background: '#F2E5C5', color: '#3A000C', opacity: (loading || !sessionReady) ? 0.7 : 1 }}
+            style={{ background: '#F2E5C5', color: '#3A000C', opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? <Spinner dark /> : <KeyRound className="w-4 h-4" />}
-            {loading ? 'Updating...' : 'Update Password'}
+            {loading ? <Spinner dark /> : <Mail className="w-4 h-4" />}
+            {loading ? 'Sending...' : 'Send Reset Link'}
           </button>
         </form>
-      </Card>
-    </div>
-  )
-}
 
-function PasswordStrength({ password }: { password: string }) {
-  const checks = [
-    { label: 'At least 8 characters', ok: password.length >= 8 },
-    { label: 'Contains a number',     ok: /\d/.test(password) },
-    { label: 'Contains uppercase',    ok: /[A-Z]/.test(password) },
-  ]
-  return (
-    <div className="space-y-1">
-      {checks.map(c => (
-        <p key={c.label} className="text-xs flex items-center gap-1.5"
-          style={{ color: c.ok ? '#86efac' : 'rgba(242,229,197,0.4)' }}>
-          <span>{c.ok ? '✓' : '○'}</span> {c.label}
-        </p>
-      ))}
+        <div className="mt-5 text-center">
+          <Link
+            href="/login"
+            className="text-sm transition inline-flex items-center gap-1"
+            style={{ color: 'rgba(242,229,197,0.5)' }}
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Back to Sign In
+          </Link>
+        </div>
+      </Card>
     </div>
   )
 }
