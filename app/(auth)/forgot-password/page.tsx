@@ -31,28 +31,25 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Listen for PASSWORD_RECOVERY event (fired after setSession below)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setSessionReady(true)
       }
     })
 
-    // Extract tokens from URL hash and manually set the session
-    // (Supabase puts them in the hash after redirecting from the recovery link)
-    const hash = window.location.hash
-    if (hash && hash.includes('access_token')) {
-      const params = new URLSearchParams(hash.replace('#', ''))
-      const access_token = params.get('access_token')
-      const refresh_token = params.get('refresh_token')
+    // RecoveryRedirect saves tokens to sessionStorage before navigating here
+    // because Next.js router.replace strips URL hash fragments
+    const access_token  = sessionStorage.getItem('recovery_access_token')
+    const refresh_token = sessionStorage.getItem('recovery_refresh_token')
 
-      if (access_token && refresh_token) {
-        supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
-          if (!error) setSessionReady(true)
-        })
-      }
+    if (access_token && refresh_token) {
+      sessionStorage.removeItem('recovery_access_token')
+      sessionStorage.removeItem('recovery_refresh_token')
+      supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+        if (!error) setSessionReady(true)
+      })
     } else {
-      // Fallback: already has a valid session
+      // Fallback: page opened directly with an existing session
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) setSessionReady(true)
       })
