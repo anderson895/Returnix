@@ -1,5 +1,4 @@
 # Back2U — MarSU Lost & Found System
-
 A web-based Lost & Found Reporting and Recovery System built with Next.js, Supabase, and Cloudinary. Supports three user roles: **User**, **Security**, and **Admin**. Features automated email notifications for claim updates, lost item reports, and item match alerts.
 
 ---
