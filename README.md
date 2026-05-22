@@ -12,8 +12,6 @@ A web-based Lost & Found Reporting and Recovery System built with Next.js, Supab
 - **Styling:** Tailwind CSS v4
 - **Language:** TypeScript
 
----
-
 ## Prerequisites
 
 - Node.js 18+
