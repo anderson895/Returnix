@@ -20,9 +20,7 @@ A web-based Lost & Found Reporting and Recovery System built with Next.js, Supab
 - A Gmail account with **2-Step Verification** enabled (for email notifications)
 
 ---
-
 ## 1. Clone & Install
-
 ```bash
 git clone <your-repo-url>
 cd my-app
